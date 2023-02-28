@@ -1,0 +1,1 @@
+influx delete --start 2009-01-02T23:00:00Z --stop $(date +"%Y-%m-%dT%H:%M:%SZ") --bucket maxTemperature --org Home --token FbYesKdKDn9VHelD4aQw9o7rrnxtKeC8jDiOrn9sF1i23Ucnm9JREd-YPvkH94N7DnHz1M6gNXS4nA1VN0qorA==

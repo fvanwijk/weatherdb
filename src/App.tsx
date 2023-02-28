@@ -13,7 +13,7 @@ import {
   query,
   getDocs,
 } from "firebase/firestore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { url, token, org, bucket } from "./env";
 
 const firebaseConfig = {
@@ -33,12 +33,19 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Initialize InfluxDB
-const writeApi = new InfluxDB({ url, token }).getWriteApi(org, bucket, "s");
+const influxdb = new InfluxDB({ url, token });
+const writeApi = influxdb.getWriteApi(org, bucket, "s");
 
-const migrateData = () => {
-  const observations = collection(db, "observations");
+const useMigrate = () => {
+  const [isLoading, setIsLoading] = useState(false);
 
-  getDocs(query(observations, limit(1000))).then((snap) =>
+  const migrateData = async () => {
+    setIsLoading(true);
+
+    const observations = collection(db, "observations");
+    const points: Point[] = [];
+
+    const snap = await getDocs(query(observations, limit(2000)));
     snap.forEach((doc) => {
       const d = doc.data();
       const point = new Point("observation")
@@ -53,28 +60,38 @@ const migrateData = () => {
         .floatField("windDir", d.winddir)
         .floatField("windSpeed", d.windspd)
         .timestamp(new Date(d.utctime * 1000));
-      writeApi.writePoint(point);
+      points.push(point);
+    });
 
-      try {
-        writeApi.close().then(() => {
-          console.log("FINISHED Writing");
-        });
-      } catch (e) {
-        console.error(e);
-        if (e instanceof HttpError && e.statusCode === 401) {
-          console.log("Run ./onboarding.js to setup a new InfluxDB database.");
-        }
-        console.log("\nFinished ERROR");
+    writeApi.writePoints(points);
+
+    try {
+      writeApi.close().then(() => {
+        console.log("FINISHED Writing");
+        setIsLoading(false);
+      });
+    } catch (e) {
+      console.error(e);
+      if (e instanceof HttpError && e.statusCode === 401) {
+        console.log("Run ./onboarding.js to setup a new InfluxDB database.");
       }
-    })
-  );
+      console.log("\nFinished ERROR");
+      setIsLoading(false);
+    }
+  };
+
+  return { isLoading, migrateData };
 };
 
 function App() {
+  const { isLoading, migrateData } = useMigrate();
+
   return (
     <div>
       <h1>InfluxDB</h1>
-      <button onClick={() => migrateData()}>Migrate</button>
+      <button disabled={isLoading} onClick={() => migrateData()}>
+        Migrate
+      </button>
     </div>
   );
 }
