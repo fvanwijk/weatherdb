@@ -46,6 +46,7 @@ const useMigrate = () => {
     const points: Point[] = [];
 
     const snap = await getDocs(query(observations, limit(2000)));
+    console.log(`Found ${snap.size} documents`);
     snap.forEach((doc) => {
       const d = doc.data();
       const point = new Point("observation")
