@@ -35,6 +35,26 @@ const db = getFirestore(app);
 // Initialize InfluxDB
 const influxdb = new InfluxDB({ url, token });
 const writeApi = influxdb.getWriteApi(org, bucket, "s");
+const queryApi = influxdb.getQueryApi(org);
+
+const timeFormatter = Intl.DateTimeFormat("nl-NL", {
+  dateStyle: "long",
+  timeStyle: "short",
+}).format;
+
+const temperatureFormatter = Intl.NumberFormat("nl-NL", {
+  maximumFractionDigits: 1,
+  minimumFractionDigits: 1,
+});
+const formatCelcius = (value: number) =>
+  `${temperatureFormatter.format(((value - 32) * 5) / 9)} ˚C`;
+
+const fluxQuery = `from(bucket: "weather")
+|> range(start: -1d)
+|> filter(fn: (r) => r["_measurement"] == "observation")
+|> filter(fn: (r) => r["_field"] == "temperatureOut")
+|> aggregateWindow(every: 5m, fn: median, createEmpty: false)
+|> yield(name: "median")`;
 
 const useMigrate = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -87,12 +107,48 @@ const useMigrate = () => {
 function App() {
   const { isLoading, migrateData } = useMigrate();
 
+  const [data, setData] = useState<Record<string, any>[]>([]);
+
+  useEffect(() => {
+    let allData: Record<string, any>[] = [];
+    queryApi.queryRows(fluxQuery, {
+      next(row, tableMeta) {
+        const rowData = tableMeta.toObject(row);
+        allData = [...allData, rowData];
+      },
+      error(e) {},
+      complete() {
+        setData(allData.reverse());
+      },
+    });
+  }, []);
+
   return (
     <div>
       <h1>InfluxDB</h1>
+      <h2>Import from Firestore</h2>
       <button disabled={isLoading} onClick={() => migrateData()}>
-        Migrate
+        Import
       </button>
+      <h2>Temperature last 24h</h2>
+      {data && (
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Temperature</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row) => (
+              <tr key={row._time}>
+                <td>{timeFormatter(new Date(row._time))}</td>
+                <td>{formatCelcius(row._value)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

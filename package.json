@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@influxdata/influxdb-client": "1.33.1",
-    "@influxdata/influxdb-client-browser": "1.33.1",
+    "@influxdata/influxdb-client": "1.33.2",
+    "@influxdata/influxdb-client-browser": "1.33.2",
     "firebase": "9.17.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
