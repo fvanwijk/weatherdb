@@ -49,16 +49,16 @@ const temperatureFormatter = Intl.NumberFormat("nl-NL", {
 const formatCelcius = (value: number) =>
   `${temperatureFormatter.format(((value - 32) * 5) / 9)} ˚C`;
 
-const fluxQuery = `from(bucket: "weather")
-|> range(start: -1d)
-|> filter(fn: (r) => r["_measurement"] == "observation")
+const fluxQuery = `from(bucket: "aggregates")
+|> range(start: -1mo)
+|> filter(fn: (r) => r["_measurement"] == "max")
 |> filter(fn: (r) => r["_field"] == "temperatureOut")
-|> aggregateWindow(every: 5m, fn: median, createEmpty: false)
-|> yield(name: "median")`;
+|> yield(name: "max")`;
 
 const useMigrate = () => {
   const [isLoading, setIsLoading] = useState(false);
 
+  // Migrate data from Firestore to InfluxDB
   const migrateData = async () => {
     setIsLoading(true);
 
@@ -130,7 +130,7 @@ function App() {
       <button disabled={isLoading} onClick={() => migrateData()}>
         Import
       </button>
-      <h2>Temperature last 24h</h2>
+      <h2>Max daily temperatures last month</h2>
       {data && (
         <table>
           <thead>
