@@ -6,7 +6,9 @@ option location = timezone.location(name: "Europe/Amsterdam")
 
 observations =
     from(bucket: "weather")
-        |> range(start: -10y, stop: date.truncate(t: -1d, unit: 1d))
+        |> range(start: -10y)
+        // We want all data because this script is to recalculate all aggregates
+        // The Influx Task only calculates for the current day (every 5 minutes)
         |> filter(fn: (r) => r._measurement == "observation")
         |> drop(
             columns: [
@@ -30,10 +32,12 @@ tempOut =
 
 tempOut
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 tempOut
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -44,10 +48,12 @@ tempIn =
 
 tempIn
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 tempIn
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -58,10 +64,12 @@ pressure =
 
 pressure
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 pressure
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -72,10 +80,12 @@ humIn =
 
 humIn
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 humIn
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -86,10 +96,12 @@ humOut =
 
 humOut
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 humOut
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -100,10 +112,12 @@ chill =
 
 chill
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 chill
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -114,10 +128,12 @@ dew =
 
 dew
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 dew
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -128,10 +144,12 @@ heat =
 
 heat
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 heat
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -142,10 +160,12 @@ gustSpeed =
 
 gustSpeed
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 gustSpeed
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
 
@@ -156,9 +176,11 @@ windSpeed =
 
 windSpeed
     |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "max")
     |> to(bucket: "aggregates", org: "Home")
 windSpeed
     |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
+    |> truncateTimeColumn(unit: 1d)
     |> set(key: "_measurement", value: "min")
     |> to(bucket: "aggregates", org: "Home")
