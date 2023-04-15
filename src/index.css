@@ -55,6 +55,16 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.flex {
+  display: flex;
+  gap: 3rem;
+}
+.flex > * {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid gray;
+  padding: 0 1rem 1rem;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -65,5 +75,8 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+  .flex > * {
+    background: rgba(0, 0, 0, 0.02);
   }
 }
