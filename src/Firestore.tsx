@@ -10,7 +10,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import React, { useState } from "react";
-import { writeApi } from "./influx-api";
+import { getWriteApi } from "./influx-api";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCP8oWKwX6YiA9LXPnWmnnObOlNhz4OmB8",
@@ -27,6 +27,7 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 const db = getFirestore(app);
+const writeApi = getWriteApi("weather");
 
 const useMigrate = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,9 +40,10 @@ const useMigrate = () => {
     const points: Point[] = [];
 
     const snap = await getDocs(
-      query(observations, orderBy("utctime"), startAt(1644905700), limit(10000)) // Deze moet nog
+      query(observations, orderBy("utctime"), startAt(1605343501), limit(10000))
     );
     let i = 0;
+    console.log(`Getting ${snap.size} documents`);
     snap.forEach((doc) => {
       const d = doc.data();
 
@@ -134,9 +136,8 @@ const useMigrate = () => {
       points.push(point);
     });
 
-    writeApi.writePoints(points);
-
     try {
+      writeApi.writePoints(points);
       writeApi.close().then(() => {
         console.log("FINISHED Writing");
         setIsLoading(false);
