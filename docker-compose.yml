@@ -8,6 +8,7 @@ services:
     volumes:
       # Mount for influxdb data directory and configuration
       - ./influxdb:/var/lib/influxdb2:rw
+      - ./cert:/etc/ssl/
     ports:
       - "8086:8086"
     restart: unless-stopped
