@@ -10,6 +10,7 @@ services:
       - ./influxdb:/var/lib/influxdb2:rw
     ports:
       - "8086:8086"
+    restart: unless-stopped
   telegraf:
     image: telegraf:1.26-alpine
     depends_on:
@@ -19,3 +20,4 @@ services:
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
     env_file:
       - influxdb.env
+    restart: unless-stopped
